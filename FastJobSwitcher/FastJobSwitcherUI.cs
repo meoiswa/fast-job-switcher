@@ -90,7 +90,7 @@ namespace FastJobSwitcher
         }
 
         ImGui.EndTable();
-        ImGui.TextWrapped("(prefix/sufix casing follows registration rules)");
+        ImGui.TextWrapped("(The casing of the Prefix/Suffix is determined by the casing of the job command)");
       }
       ImGui.Unindent();
     }
