@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>Meoiswa</Authors>
     <Company></Company>
-    <Version>1.0.0.1</Version>
+    <Version>1.0.0.2</Version>
     <Description>Fast Job Switcher</Description>
     <Copyright></Copyright>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
