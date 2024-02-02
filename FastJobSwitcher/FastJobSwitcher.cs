@@ -143,7 +143,7 @@ namespace FastJobSwitcher
       if (rapture != null)
       {
         short bestLevel = 0;
-        byte bestId = 0;
+        byte? bestId = null;
         for (var i = 0; i < 100; i++)
         {
           var gearset = rapture->GetGearset(i);
@@ -156,9 +156,9 @@ namespace FastJobSwitcher
             }
           }
         }
-        if (bestId > 0)
+        if (bestId.HasValue)
         {
-          rapture->EquipGearset(bestId);
+          rapture->EquipGearset(bestId.Value);
           return true;
         }
       }
