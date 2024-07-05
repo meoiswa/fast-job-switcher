@@ -147,12 +147,12 @@ namespace FastJobSwitcher
         for (var i = 0; i < 100; i++)
         {
           var gearset = rapture->GetGearset(i);
-          if (gearset != null && gearset->Flags.HasFlag(RaptureGearsetModule.GearsetFlag.Exists) && gearset->ID == i && gearset->ClassJob == cj.RowId)
+          if (gearset != null && gearset->Flags.HasFlag(RaptureGearsetModule.GearsetFlag.Exists) && gearset->Id == i && gearset->ClassJob == cj.RowId)
           {
             if (gearset->ItemLevel > bestLevel)
             {
               bestLevel = gearset->ItemLevel;
-              bestId = gearset->ID;
+              bestId = gearset->Id;
             }
           }
         }

@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
-using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Newtonsoft.Json;
@@ -15,7 +14,7 @@ namespace FastJobSwitcher
 
     private const string commandName = "/fjs";
 
-    public DalamudPluginInterface PluginInterface { get; init; }
+    public IDalamudPluginInterface PluginInterface { get; init; }
     public ICommandManager CommandManager { get; init; }
     public ConfigurationMKI Configuration { get; init; }
     public WindowSystem WindowSystem { get; init; }
@@ -24,8 +23,8 @@ namespace FastJobSwitcher
     public FastJobSwitcher Switcher { get; init; }
 
     public FastJobSwitcherPlugin(
-        [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-        [RequiredVersion("1.0")] ICommandManager commandManager)
+        IDalamudPluginInterface pluginInterface,
+        ICommandManager commandManager)
     {
       pluginInterface.Create<Service>();
 
