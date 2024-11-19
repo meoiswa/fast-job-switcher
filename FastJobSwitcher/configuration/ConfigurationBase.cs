@@ -1,11 +1,11 @@
 using Dalamud.Configuration;
 using System;
 
-namespace FastJobSwitcher
+namespace FastJobSwitcher;
+
+[Serializable]
+public class ConfigurationBase : IPluginConfiguration
 {
-  [Serializable]
-  public class ConfigurationBase : IPluginConfiguration
-  {
     public virtual int Version { get; set; } = 0;
 
     [NonSerialized]
@@ -13,7 +13,6 @@ namespace FastJobSwitcher
     public void Initialize(Action saveAction) => this.saveAction = saveAction;
     public void Save()
     {
-      saveAction?.Invoke();
+        saveAction?.Invoke();
     }
-  }
 }

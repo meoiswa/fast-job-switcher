@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace FastJobSwitcher
+namespace FastJobSwitcher;
+
+[Serializable]
+public class ConfigurationMKI : ConfigurationBase
 {
-  [Serializable]
-  public class ConfigurationMKI : ConfigurationBase
-  {
     public override int Version { get; set; } = 0;
 
     public bool IsVisible { get; set; } = true;
@@ -16,5 +16,4 @@ namespace FastJobSwitcher
     public bool RegisterLowercaseCommands { get; set; } = true;
 
     public bool RegisterUppercaseCommands { get; set; } = true;
-  }
 }
