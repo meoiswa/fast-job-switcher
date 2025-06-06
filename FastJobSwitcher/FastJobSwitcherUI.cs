@@ -7,9 +7,9 @@ namespace FastJobSwitcher;
 
 public class FastJobSwitcherUI : Window, IDisposable
 {
-    private readonly ConfigurationMKI configuration;
+    private readonly ConfigurationMKII configuration;
 
-    public FastJobSwitcherUI(ConfigurationMKI configuration)
+    public FastJobSwitcherUI(ConfigurationMKII configuration)
       : base(
         "Fast Job Switcher##ConfigWindow",
         ImGuiWindowFlags.AlwaysAutoResize
@@ -40,57 +40,22 @@ public class FastJobSwitcherUI : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.TextWrapped("Register commands for each class/job:");
+        ImGui.TextWrapped("Register:");
         ImGui.Indent();
         {
-            var lowercaseEnabled = configuration.RegisterLowercaseCommands;
-            if (ImGui.Checkbox("Lowercase##LowercaseCommand", ref lowercaseEnabled))
+            var classJobEnabled = configuration.RegisterClassJobs;
+            if (ImGui.Checkbox("Classes and Jobs##ClassJobs", ref classJobEnabled))
             {
-                configuration.RegisterLowercaseCommands = lowercaseEnabled;
+                configuration.RegisterClassJobs = classJobEnabled;
                 configuration.Save();
             }
 
-            var uppercaseEnabled = configuration.RegisterUppercaseCommands;
-            if (ImGui.Checkbox("Uppercase##UppercaseCommand", ref uppercaseEnabled))
+            var phantomJobsEnabled = configuration.RegisterPhantomJobs;
+            if (ImGui.Checkbox("Phantom Jobs##PhantomJobs", ref phantomJobsEnabled))
             {
-                configuration.RegisterUppercaseCommands = uppercaseEnabled;
+                configuration.RegisterPhantomJobs = phantomJobsEnabled;
                 configuration.Save();
             }
-        }
-        ImGui.Unindent();
-
-        ImGui.NewLine();
-        ImGui.TextWrapped("Optional Prefix/Suffix for each command:");
-        ImGui.Indent();
-        {
-            ImGui.BeginTable("##table", 2);
-
-            ImGui.TableNextRow();
-            ImGui.TableSetColumnIndex(0);
-            ImGui.Text("Prefix:");
-            ImGui.TableSetColumnIndex(1);
-            ImGui.SetNextItemWidth(180);
-            var prefix = configuration.Prefix;
-            if (ImGui.InputText("##Prefix", ref prefix, 32))
-            {
-                configuration.Prefix = prefix;
-                configuration.Save();
-            }
-
-            ImGui.TableNextRow();
-            ImGui.TableSetColumnIndex(0);
-            ImGui.Text("Suffix:");
-            ImGui.TableSetColumnIndex(1);
-            var suffix = configuration.Suffix;
-            ImGui.SetNextItemWidth(180);
-            if (ImGui.InputText("##Suffix", ref suffix, 32))
-            {
-                configuration.Suffix = suffix;
-                configuration.Save();
-            }
-
-            ImGui.EndTable();
-            ImGui.TextWrapped("(The casing of the Prefix/Suffix is determined by the casing of the job command)");
         }
         ImGui.Unindent();
     }

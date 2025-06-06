@@ -16,7 +16,7 @@ public sealed class FastJobSwitcherPlugin : IDalamudPlugin
 
     public IDalamudPluginInterface PluginInterface { get; init; }
     public ICommandManager CommandManager { get; init; }
-    public ConfigurationMKI Configuration { get; init; }
+    public ConfigurationMKII Configuration { get; init; }
     public WindowSystem WindowSystem { get; init; }
     public FastJobSwitcherUI Window { get; init; }
 
@@ -66,7 +66,7 @@ public sealed class FastJobSwitcherPlugin : IDalamudPlugin
         WindowSystem.RemoveAllWindows();
     }
 
-    private ConfigurationMKI LoadConfiguration()
+    private ConfigurationMKII LoadConfiguration()
     {
         JObject? baseConfig = null;
         if (File.Exists(PluginInterface.ConfigFile.FullName))
@@ -82,12 +82,20 @@ public sealed class FastJobSwitcherPlugin : IDalamudPlugin
                 var configmki = baseConfig.ToObject<ConfigurationMKI>();
                 if (configmki != null)
                 {
-                    return configmki;
+                    return ConfigurationMKII.MigrateFrom(configmki);
+                }
+            }
+            if ((int?)baseConfig["Version"] == 1)
+            {
+                var configmkii = baseConfig.ToObject<ConfigurationMKII>();
+                if (configmkii != null)
+                {
+                    return configmkii;
                 }
             }
         }
 
-        return new ConfigurationMKI();
+        return new ConfigurationMKII();
     }
 
     public void SaveConfiguration()
