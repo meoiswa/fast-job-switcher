@@ -29,7 +29,7 @@ public class FastJobSwitcher : IDisposable
         { "Phantom Samurai", "PSAM" },
         { "Phantom Bard", "PBRD" },
         { "Phantom Geomancer", "PGEO" },
-        { "Phantom Time Mage", "PTMG" },
+        { "Phantom Time Mage", "PTIM" },
         { "Phantom Cannoneer", "PCAN" },
         { "Phantom Chemist", "PCHM" },
         { "Phantom Oracle", "PORC" },
