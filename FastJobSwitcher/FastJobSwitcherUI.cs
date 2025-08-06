@@ -50,12 +50,42 @@ public class FastJobSwitcherUI : Window, IDisposable
                 configuration.Save();
             }
 
+            ImGui.BeginGroup();
             var phantomJobsEnabled = configuration.RegisterPhantomJobs;
-            if (ImGui.Checkbox("Phantom Jobs##PhantomJobs", ref phantomJobsEnabled))
+            ImGui.PushID("PhantomJobsRow");
+            ImGui.Checkbox("Phantom Jobs##PhantomJobs", ref phantomJobsEnabled);
+            ImGui.SameLine();
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 999f);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
+            if (ImGui.Button("?", new Vector2(22, 22))) { /* No action on click */ }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                if (ImGui.BeginTable("PhantomJobsTable", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.PadOuterX))
+                {
+                    ImGui.TableSetupColumn("Command");
+                    ImGui.TableSetupColumn("Job Name");
+                    ImGui.TableHeadersRow();
+                    foreach (var entry in FastJobSwitcher.PhantomJobNameAcronymMap)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+                        ImGui.TextUnformatted($"/{entry.Value}");
+                        ImGui.TableSetColumnIndex(1);
+                        ImGui.TextUnformatted(entry.Key);
+                    }
+                    ImGui.EndTable();
+                }
+                ImGui.EndTooltip();
+            }
+            ImGui.PopStyleVar(2);
+            ImGui.PopID();
+            if (phantomJobsEnabled != configuration.RegisterPhantomJobs)
             {
                 configuration.RegisterPhantomJobs = phantomJobsEnabled;
                 configuration.Save();
             }
+            ImGui.EndGroup();
         }
         ImGui.Unindent();
     }
