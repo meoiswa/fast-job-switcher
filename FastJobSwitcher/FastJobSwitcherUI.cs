@@ -61,21 +61,48 @@ public class FastJobSwitcherUI : Window, IDisposable
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                if (ImGui.BeginTable("PhantomJobsTable", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.PadOuterX))
+                ImGui.TextUnformatted("Use the /pj command with fuzzy search, for example:");
+                ImGui.Spacing();
+                if (ImGui.BeginTable("PhantomJobExamples", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.PadOuterX))
                 {
                     ImGui.TableSetupColumn("Command");
-                    ImGui.TableSetupColumn("Job Name");
+                    ImGui.TableSetupColumn("Matches");
                     ImGui.TableHeadersRow();
-                    foreach (var entry in FastJobSwitcher.PhantomJobNameAcronymMap)
-                    {
-                        ImGui.TableNextRow();
-                        ImGui.TableSetColumnIndex(0);
-                        ImGui.TextUnformatted($"/{entry.Value}");
-                        ImGui.TableSetColumnIndex(1);
-                        ImGui.TextUnformatted(entry.Key);
-                    }
+                    
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.TextUnformatted("/pj knight");
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TextUnformatted("Phantom Knight");
+                    
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.TextUnformatted("/pj rng");
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TextUnformatted("Phantom Ranger");
+                    
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.TextUnformatted("/pj mage");
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TextUnformatted("Phantom Time Mage");
+                    
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.TextUnformatted("/pj cnr");
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TextUnformatted("Phantom Cannoneer");
+                    
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.TextUnformatted("/pj dnc");
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TextUnformatted("Phantom Dancer");
+                    
                     ImGui.EndTable();
                 }
+                ImGui.Spacing();
+                ImGui.TextUnformatted("Supports partial matches and typos!");
                 ImGui.EndTooltip();
             }
             ImGui.PopStyleVar(2);

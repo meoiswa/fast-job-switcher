@@ -19,22 +19,6 @@ public class FastJobSwitcher : IDisposable
     private List<ClassJob>? classJobSheet;
     private List<MKDSupportJob>? phantomJobSheet;
     private HashSet<string> registeredCommands = new();
-    public static readonly Dictionary<string, string> PhantomJobNameAcronymMap = new()
-    {
-        { "Phantom Freelancer", "PFRE" },
-        { "Phantom Knight", "PKNT" },
-        { "Phantom Berserker", "PBER" },
-        { "Phantom Monk", "PMNK" },
-        { "Phantom Ranger", "PRNG" },
-        { "Phantom Samurai", "PSAM" },
-        { "Phantom Bard", "PBRD" },
-        { "Phantom Geomancer", "PGEO" },
-        { "Phantom Time Mage", "PTIM" },
-        { "Phantom Cannoneer", "PCAN" },
-        { "Phantom Chemist", "PCHM" },
-        { "Phantom Oracle", "PORC" },
-        { "Phantom Thief", "PTHF" },
-    };
 
     public FastJobSwitcher(ConfigurationMKII configuration)
     {
@@ -91,17 +75,8 @@ public class FastJobSwitcher : IDisposable
 
         if (configuration.RegisterPhantomJobs)
         {
-            phantomJobSheet?.ForEach(row =>
-            {
-                var jobName = row.Unknown0.ExtractText();
-                var acronym = PhantomJobNameToAcronym(jobName);
-                if (!string.IsNullOrWhiteSpace(acronym))
-                {
-                    var command = "/" + acronym;
-                    RegisterCommand(command.ToUpperInvariant(), jobName, "Phantom Job");
-                    RegisterCommand(command.ToLowerInvariant(), jobName, "Phantom Job");
-                }
-            });
+            RegisterCommand("/pj", "Phantom Job (fuzzy search)", "Phantom Job");
+            RegisterCommand("/PJ", "Phantom Job (fuzzy search)", "Phantom Job");
         }
     }
 
@@ -132,9 +107,9 @@ public class FastJobSwitcher : IDisposable
             HandleClassJobCommand(command);
         }
 
-        if (command.Length == 4 && phantomJobSheet != null)
+        if (command.Equals("pj", StringComparison.InvariantCultureIgnoreCase) && phantomJobSheet != null)
         {
-            HandlePhantomJobCommand(command);
+            HandlePhantomJobCommand(arguments);
         }
     }
 
@@ -156,7 +131,7 @@ public class FastJobSwitcher : IDisposable
         }
     }
 
-    private unsafe void HandleClassJobCommand(string command)
+    private void HandleClassJobCommand(string command)
     {
         var cj = classJobSheet!.FirstOrDefault(row => row.Abbreviation.ToString().Equals(command, StringComparison.InvariantCultureIgnoreCase));
 
@@ -179,85 +154,150 @@ public class FastJobSwitcher : IDisposable
         }
     }
 
-    private string PhantomJobNameToAcronym(string name)
+    private static int CalculateCharacterMatchScore(string query, string target)
     {
-        return PhantomJobNameAcronymMap.TryGetValue(name, out var acronym) ? acronym : string.Empty;
-    }
-
-    private string PhantomJobAcronymToName(string acronym)
-    {
-        foreach (var kvp in PhantomJobNameAcronymMap)
+        // Count how many characters from the query appear in the target (in order)
+        int matchCount = 0;
+        int targetIndex = 0;
+        
+        foreach (char queryChar in query)
         {
-            if (string.Equals(kvp.Value, acronym, StringComparison.InvariantCultureIgnoreCase))
-                return kvp.Key;
+            while (targetIndex < target.Length)
+            {
+                if (target[targetIndex] == queryChar)
+                {
+                    matchCount++;
+                    targetIndex++;
+                    break;
+                }
+                targetIndex++;
+            }
+            
+            if (targetIndex >= target.Length)
+                break;
         }
-        return string.Empty;
+        
+        return matchCount;
     }
 
-    private unsafe void HandlePhantomJobCommand(string command)
+    private MKDSupportJob? FuzzySearchPhantomJob(string query)
     {
-        if (command.StartsWith("p", StringComparison.InvariantCultureIgnoreCase))
+        if (string.IsNullOrWhiteSpace(query) || phantomJobSheet == null)
+            return null;
+
+        var searchQuery = query.ToLowerInvariant();
+        MKDSupportJob? bestSubstringMatch = null;
+        int bestSubstringScore = int.MaxValue;
+        MKDSupportJob? bestCharMatch = null;
+        int bestCharMatchScore = 0;
+
+        foreach (var job in phantomJobSheet)
         {
-            var jobName = PhantomJobAcronymToName(command);
-
-            if (string.IsNullOrWhiteSpace(jobName))
+            var name = job.Name.ExtractText().ToLowerInvariant();
+            var nameEnglish = job.NameEnglish.ExtractText().ToLowerInvariant();
+            
+            // Remove "phantom " prefix from nameEnglish to avoid matching against it
+            if (nameEnglish.StartsWith("phantom "))
             {
-                var msg = $"JobSwitch: No Phantom Job found for command: {command}";
-                Service.PluginLog.Error(msg);
-                Service.ChatGui.PrintError(msg);
-                return;
+                nameEnglish = nameEnglish.Substring(8);
             }
 
-            var row = phantomJobSheet!.FirstOrDefault(row => row.Unknown0.ExtractText().Equals(jobName, StringComparison.InvariantCultureIgnoreCase));
-
-            if (row.Equals(default(MKDSupportJob)))
+            // Check for exact substring match first (best case)
+            if (name.Contains(searchQuery) || nameEnglish.Contains(searchQuery))
             {
-                var msg = $"JobSwitch: No Phantom Job found for command: {command}";
-                Service.PluginLog.Error(msg);
-                Service.ChatGui.PrintError(msg);
-                return;
+                var score = Math.Min(
+                    name.Contains(searchQuery) ? name.IndexOf(searchQuery) : int.MaxValue,
+                    nameEnglish.Contains(searchQuery) ? nameEnglish.IndexOf(searchQuery) : int.MaxValue
+                );
+                
+                if (score < bestSubstringScore)
+                {
+                    bestSubstringScore = score;
+                    bestSubstringMatch = job;
+                }
             }
-
-            if (GameMain.Instance()->CurrentTerritoryIntendedUseId != 61)
+            else
             {
-                var msg = "You can only use this command in the Occult Crescent";
-                Service.PluginLog.Error(msg);
-                Service.ChatGui.PrintError(msg);
-                return;
-            }
+                // Character-based matching: count matching characters in sequence
+                var charMatchName = CalculateCharacterMatchScore(searchQuery, name);
+                var charMatchEnglish = CalculateCharacterMatchScore(searchQuery, nameEnglish);
+                var charMatch = Math.Max(charMatchName, charMatchEnglish);
 
-            var jobId = row.RowId;
-
-            var agent = AgentModule.Instance()->GetAgentByInternalId(AgentId.MKDSupportJobList);
-
-            if (agent == null)
-            {
-                var msg = "Failed to get MKDSupportJobList agent.";
-                Service.PluginLog.Error(msg);
-                Service.ChatGui.PrintError(msg);
-                return;
+                if (charMatch > bestCharMatchScore)
+                {
+                    bestCharMatchScore = charMatch;
+                    bestCharMatch = job;
+                }
             }
+        }
 
-            var eventObject = stackalloc AtkValue[1];
-            var atkValues = (AtkValue*)Marshal.AllocHGlobal(2 * sizeof(AtkValue));
-            atkValues[0].Type = ValueType.UInt;
-            atkValues[0].UInt = 0;
-            atkValues[1].Type = ValueType.UInt;
-            atkValues[1].UInt = jobId;
+        // Always prefer substring matches over character matches
+        return bestSubstringMatch ?? bestCharMatch;
+    }
 
-            try
-            {
-                agent->ReceiveEvent(eventObject, atkValues, 2, 1);
-            }
-            catch (Exception ex)
-            {
-                Service.PluginLog.Error($"Failed to switch Phantom Job: {ex.Message}");
-                Service.ChatGui.PrintError($"Failed to switch Phantom Job: {ex.Message}");
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(new IntPtr(atkValues));
-            }
+    private unsafe void HandlePhantomJobCommand(string searchQuery)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var msg = "JobSwitch: Please provide a search query for the Phantom Job (e.g., /pj knight)";
+            Service.PluginLog.Error(msg);
+            Service.ChatGui.PrintError(msg);
+            return;
+        }
+
+        var row = FuzzySearchPhantomJob(searchQuery);
+
+        if (!row.HasValue)
+        {
+            var msg = $"JobSwitch: No Phantom Job found matching: {searchQuery}";
+            Service.PluginLog.Error(msg);
+            Service.ChatGui.PrintError(msg);
+            return;
+        }
+
+        var job = row.Value;
+
+        if (GameMain.Instance()->CurrentTerritoryIntendedUseId != FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.OccultCrescent)
+        {
+            var msg = "You can only use this command while in the Occult Crescent";
+            Service.PluginLog.Error(msg);
+            Service.ChatGui.PrintError(msg);
+            return;
+        }
+
+        var jobId = job.RowId;
+        var jobName = job.NameEnglish.ExtractText();
+        Service.PluginLog.Information($"Switching to Phantom Job: {jobName} (matched from query: {searchQuery})");
+
+        var agent = AgentModule.Instance()->GetAgentByInternalId(AgentId.MKDSupportJobList);
+
+        if (agent == null)
+        {
+            var msg = "Failed to get MKDSupportJobList agent.";
+            Service.PluginLog.Error(msg);
+            Service.ChatGui.PrintError(msg);
+            return;
+        }
+
+        var eventObject = stackalloc AtkValue[1];
+        var atkValues = (AtkValue*)Marshal.AllocHGlobal(2 * sizeof(AtkValue));
+        atkValues[0].Type = ValueType.UInt;
+        atkValues[0].UInt = 0;
+        atkValues[1].Type = ValueType.UInt;
+        atkValues[1].UInt = jobId;
+
+        try
+        {
+            agent->ReceiveEvent(eventObject, atkValues, 2, 1);
+        }
+        catch (Exception ex)
+        {
+            Service.PluginLog.Error($"Failed to switch Phantom Job: {ex.Message}");
+            Service.ChatGui.PrintError($"Failed to switch Phantom Job: {ex.Message}");
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(new IntPtr(atkValues));
         }
     }
 

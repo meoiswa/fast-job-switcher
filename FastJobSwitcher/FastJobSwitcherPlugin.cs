@@ -50,6 +50,7 @@ public sealed class FastJobSwitcherPlugin : IDalamudPlugin
 
         PluginInterface.UiBuilder.Draw += DrawUI;
         PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+        pluginInterface.UiBuilder.OpenMainUi += DrawConfigUI;
 
         Switcher = new FastJobSwitcher(Configuration);
     }
@@ -60,6 +61,7 @@ public sealed class FastJobSwitcherPlugin : IDalamudPlugin
 
         PluginInterface.UiBuilder.Draw -= DrawUI;
         PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUI;
+        PluginInterface.UiBuilder.OpenMainUi -= DrawConfigUI;
 
         CommandManager.RemoveHandler(commandName);
 
